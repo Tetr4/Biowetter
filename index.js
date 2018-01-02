@@ -1,4 +1,5 @@
 'use strict';
+const scraper = require('./scraper');
 
 // --------------- Response Helper -----------------------
 function buildResponse(title, output, shouldEndSession) {
@@ -15,43 +16,44 @@ function buildResponse(title, output, shouldEndSession) {
                 title: `SessionSpeechlet - ${title}`,
                 content: `SessionSpeechlet - ${output}`,
             },
-            shouldEndSession,   
+            shouldEndSession,
         },
     };
 }
 
 
 // --------------- Skill Behavior -----------------------
-function getBiowetterResponse() {
-    // TODO parse from website
-    const cardTitle = 'Biowetter für heute';
-    const speechOutput = 'Die aktuelle Wetterlage wirkt sich negativ auf den gesunden Tiefschlaf und rheumatische Erkrankungen aus. Menschen mit hohem Blutdruck sollten einen Gang zurückschalten, denn unnötige Aufregungen beschleunigen bei dieser Witterung Durchblutung und Stoffwechsel merklich. Das allgemeine Wohlbefinden leidet unter Kopfweh und Migräne.';
-    const shouldEndSession = true;
-    return buildResponse(cardTitle, speechOutput, shouldEndSession);
+function sendBiowetterResponse(callback) {
+    const biowetter = scraper.fetchBiowetterToday((biowetter) => {
+        if (biowetter) {
+            const response = buildResponse(biowetter.title, biowetter.text, true)
+            callback(null, response);
+        } else {
+            callback(new Error("Could not fetch Biowetter"))
+        }
+    });
 }
 
-function getSessionEndResponse() {
-    const cardTitle = 'Session zuende';
-    const speechOutput = 'Tschüss!';
-    const shouldEndSession = true;
-    return buildResponse(cardTitle, speechOutput, shouldEndSession);
+function sendSessionEndResponse(callback) {
+    const response = buildResponse('Session zuende', 'Tschüss!', true);
+    callback(null, response);
 }
 
 
 // --------------- Request handler -----------------------
-function handleLaunch(launchRequest) {
-    console.log('onLaunch');
-    return getBiowetterResponse();
+function handleLaunch(launchRequest, callback) {
+    console.log('handleLaunch');
+    sendBiowetterResponse(callback);
 }
 
-function handleIntent(intentRequest) {
-    console.log('onIntent', intentRequest.intent.name);
+function handleIntent(intentRequest, callback) {
+    console.log('handleIntent', intentRequest.intent.name);
     switch (intentRequest.intent.name) {
         case 'AMAZON.HelpIntent':
-            return getBiowetterResponse();
+            sendBiowetterResponse(callback);
         case 'AMAZON.StopIntent': // fall through
         case 'AMAZON.CancelIntent':
-            return getSessionEndResponse();
+            sendSessionEndResponse(callback);
         default:
             throw new Error('Invalid intent');
     }
@@ -67,10 +69,10 @@ exports.handler = (event, context, callback) => {
         // }
         switch (event.request.type) {
             case 'LaunchRequest':
-                callback(null, handleLaunch(event.request));
+                handleLaunch(event.request, callback);
                 break;
             case 'IntentRequest':
-                callback(null, handleIntent(event.request));
+                handleIntent(event.request, callback);
                 break;
             case 'SessionEndedRequest':
                 callback();

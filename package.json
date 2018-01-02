@@ -1,0 +1,13 @@
+{
+  "name": "biowetter",
+  "version": "1.0.0",
+  "description": "AWS Lambda for Biowetter Alexa skill",
+  "main": "index.js",
+  "repository": "https://github.com/Tetr4/Biowetter",
+  "author": "Mike Klimek <mike@criduchat.de>",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "request": "^2.83.0"
+  }
+}
