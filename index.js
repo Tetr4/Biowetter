@@ -24,7 +24,7 @@ function buildResponse(title, output, shouldEndSession) {
 
 // --------------- Skill Behavior -----------------------
 function sendBiowetterResponse(callback) {
-    const biowetter = scraper.fetchBiowetterToday((biowetter) => {
+    scraper.fetchBiowetterToday((biowetter) => {
         if (biowetter) {
             const response = buildResponse(biowetter.title, biowetter.text, true)
             callback(null, response);
